@@ -17,7 +17,7 @@ The purple blocks represent ROS packages included within this repository.
 ## Communication interface setup
 
 ### Setup CAN-To-USB adapter 
- 
+
 1. Enable gs_usb kernel module
    
     ```
@@ -65,18 +65,7 @@ Two scripts inside the "scout_bringup/scripts" folder are provided for easy setu
 
     Change ros-melodic-* in the command to ros-kinetic-* if you're using ROS Kinetic.
 
-2. Clone the packages into your catkin workspace and compile
-
-    (the following instructions assume your catkin workspace is at: ~/catkin_ws/src)
-
-    ```
-    $ cd ~/catkin_ws/src
-    $ git clone https://gitee.com/agilexrobotics/scout_mini_ros.git
-    $ cd ..
-    $ catkin_make
-    ```
-
-3. Setup Webots simulation    
+2. Setup Webots simulation    
 
 * Install Webots R2020a-rev1 (download from https://cyberbotics.com/ )
 
@@ -92,27 +81,38 @@ Two scripts inside the "scout_bringup/scripts" folder are provided for easy setu
     export WEBOTS_HOME=/usr/local/webots
     ```
 
+3. Clone the packages into your catkin workspace and compile
+
+    (the following instructions assume your catkin workspace is at: ~/catkin_ws/src)
+
+    ```
+    $ cd ~/catkin_ws/src
+    $ git clone https://github.com/agilexrobotics/scout_mini_ros.git
+    $ cd ..
+    $ catkin_make
+    ```
+
 4. Launch ROS nodes
- 
+
 * Start the base node for the real robot
 
     ```
     $ roslaunch scout_bringup scout_minimal.launch
     ```
 
-
 * Start the keyboard tele-op node
 
     ```
     $ roslaunch scout_bringup scout_teleop_keyboard.launch
     ```
-5.Setup gazebo simulation
+
+5. Setup gazebo simulation
 * Start the gazebo simulation node
-```
-$ roslaunch scout_bringup scout_mini_base_gazebo_sim.launch
-```
+    ```
+    $ roslaunch scout_bringup scout_mini_base_gazebo_sim.launch
+    ```
 
 
     **SAFETY PRECAUSION**: 
-
+    
     The default command values of the keyboard teleop node are high, make sure you decrease the speed commands before starting to control the robot with your keyboard! Have your remote controller ready to take over the control whenever necessary. 
