@@ -25,6 +25,8 @@
 
 #include "scout_sdk/scout_types.hpp"
 
+#include <ros/ros.h>
+
 namespace wescore
 {
 class ScoutBase
@@ -54,6 +56,10 @@ public:
     // light control
     void SetLightCommand(ScoutLightCmd cmd);
     void DisableLightCmdControl();
+
+    bool cmd_msg_received = false; // used to indicate received command vel
+    ros::Time begin =ros::Time::now(); // used for timing
+    ros::Time end =ros::Time::now(); // used for timing
 
     // get robot state
     ScoutState GetScoutState();

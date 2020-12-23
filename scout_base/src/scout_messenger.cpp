@@ -36,6 +36,7 @@ void ScoutROSMessenger::SetupSubscription()
 
 void ScoutROSMessenger::TwistCmdCallback(const geometry_msgs::Twist::ConstPtr &msg)
 {
+    scout_->cmd_msg_received = true; // setting boolean for a received velocity message used for timing in scout_sdk
     if (!simulated_robot_)
     {
         scout_->SetMotionCommand(msg->linear.x, msg->linear.y, msg->angular.z);
