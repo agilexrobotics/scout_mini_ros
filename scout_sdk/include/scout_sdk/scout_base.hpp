@@ -44,6 +44,9 @@ public:
     // disconnect from roboot, only valid for serial port
     void Disconnect();
 
+    // ask background thread to shutdown properly
+    void Terminate();
+
     // cmd thread runs at 100Hz (10ms) by default
     void SetCmdThreadPeriodMs(int32_t period_ms) { cmd_thread_period_ms_ = period_ms; };
 
@@ -62,6 +65,20 @@ private:
     // hardware communication interface
     std::shared_ptr<ASyncCAN> can_if_;
     std::shared_ptr<ASyncSerial> serial_if_;
+
+    // timeout to be implemented in each vehicle
+    bool enable_timeout_ = true;
+    uint32_t timeout_ms_ = 500;
+    uint32_t watchdog_counter_ = 0;
+    void FeedCmdTimeoutWatchdog() { watchdog_counter_ = 0; };
+
+    enum CmdType
+     {
+         reset = -1,
+         run = 0,
+         stop = 1
+     };
+     CmdType cmd_type = reset;
 
     // CAN priority higher than serial if both connected
     bool can_connected_ = false;
