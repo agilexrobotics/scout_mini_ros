@@ -10,11 +10,20 @@
 
 using namespace wescore;
 
+ScoutBase robot;
+
+void DetachRobot(int signal) {
+  robot.Disconnect();
+  robot.Terminate();
+}
+
 int main(int argc, char **argv)
 {
     // setup ROS node
     ros::init(argc, argv, "scout_odom");
     ros::NodeHandle node(""), private_node("~");
+
+    std::signal(SIGINT, DetachRobot);
 
     // instantiate a robot object
     ScoutBase robot;

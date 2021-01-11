@@ -108,6 +108,10 @@ void ScoutBase::Disconnect()
     }
 }
 
+void ScoutBase::Terminate() {
+  std::terminate();
+}
+
 void ScoutBase::ConfigureCANBus(const std::string &can_if_name)
 {
     can_if_ = std::make_shared<ASyncCAN>(can_if_name);
@@ -242,14 +246,30 @@ void ScoutBase::SendLightCmd(uint8_t count)
 void ScoutBase::ControlLoop(int32_t period_ms)
 {
     StopWatch ctrl_sw;
+    bool print_loop_freq = false;
+    uint32_t timeout_iter_num;
     uint8_t cmd_count = 0;
     uint8_t light_cmd_count = 0;
-    while (true)
-    {
-        ctrl_sw.tic();
+    if (enable_timeout_) {
+      if (timeout_ms_ < period_ms) timeout_ms_ = period_ms;
+      timeout_iter_num = static_cast<uint32_t>(timeout_ms_ / period_ms);
+      std::cout << "Info: Timeout iteration number: " << timeout_ms_ <<" ms " << std::endl;
+    }
+    while (true) {
+      ctrl_sw.tic();
 
-        // motion control message
+      if (enable_timeout_) {
+        if (watchdog_counter_ < timeout_iter_num) {
+          SendMotionCmd(cmd_count++);
+          ++watchdog_counter_;
+          cmd_type = run;
+        } else if (cmd_type == run) {
+          std::cout << "Warning: cmd timeout, old cmd not sent to robot" << std::endl;
+          cmd_type = stop;
+        }
+      } else {
         SendMotionCmd(cmd_count++);
+
 
         // check if there is request for light control
         if (light_ctrl_requested_)
@@ -272,6 +292,17 @@ void ScoutBase::ControlLoop(int32_t period_ms)
         cmd_msg_received=false; // reset boolean for receiving cmd_vel
         end = ros::Time::now(); // continue the timing
         // std::cout << "control loop update frequency: " << 1.0 / ctrl_sw.toc() << std::endl;
+
+      }
+      if (print_loop_freq)
+        std::cout << "control loop frequency: " << 1.0 / ctrl_sw.toc()
+                  << std::endl;
+
+      // check if there is request for light control
+      if (light_ctrl_requested_)
+          SendLightCmd(light_cmd_count++);
+      ctrl_sw.sleep_until_ms(period_ms);
+
     }
 }
 
@@ -305,6 +336,8 @@ void ScoutBase::SetMotionCommand(double linear_vel, double transverse_linear_vel
     current_motion_cmd_.angular_velocity = static_cast<int8_t>(angular_vel / ScoutMotionCmd::max_angular_velocity * 100.0);
     current_motion_cmd_.transverse_linear_velocity = static_cast<int8_t>(transverse_linear_vel / ScoutMotionCmd::max_transverse_linear_velocity * 100.0);
     current_motion_cmd_.fault_clear_flag = fault_clr_flag;
+
+    FeedCmdTimeoutWatchdog();
 }
 
 void ScoutBase::SetLightCommand(ScoutLightCmd cmd)
