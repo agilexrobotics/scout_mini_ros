@@ -270,10 +270,14 @@ void ScoutBase::ControlLoop(int32_t period_ms)
       } else {
         SendMotionCmd(cmd_count++);
       }
-      ctrl_sw.sleep_until_ms(period_ms);
       if (print_loop_freq)
         std::cout << "control loop frequency: " << 1.0 / ctrl_sw.toc()
                   << std::endl;
+
+      // check if there is request for light control
+      if (light_ctrl_requested_)
+          SendLightCmd(light_cmd_count++);
+      ctrl_sw.sleep_until_ms(period_ms);
     }
 }
 
