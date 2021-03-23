@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <ratio>
 #include <thread>
-
+#include <ros/ros.h> 
 namespace
 {
 // source: https://github.com/rxdu/stopwatch
@@ -269,6 +269,30 @@ void ScoutBase::ControlLoop(int32_t period_ms)
         }
       } else {
         SendMotionCmd(cmd_count++);
+
+
+        // check if there is request for light control
+        if (light_ctrl_requested_)
+            SendLightCmd(light_cmd_count++);
+
+        ctrl_sw.sleep_until_ms(period_ms);
+        
+        // reset timing if cmd_vel received
+        if(cmd_msg_received){
+            begin = ros::Time::now();
+            end = ros::Time::now();
+         }
+        
+        // if cmd_vel not received within 0.5 sec, stop the base
+        if((end-begin).toSec()>=0.5){
+            current_motion_cmd_.linear_velocity = 0.0;
+            current_motion_cmd_.angular_velocity = 0.0;
+            ROS_DEBUG("No velcity message received");
+        }
+        cmd_msg_received=false; // reset boolean for receiving cmd_vel
+        end = ros::Time::now(); // continue the timing
+        // std::cout << "control loop update frequency: " << 1.0 / ctrl_sw.toc() << std::endl;
+
       }
       if (print_loop_freq)
         std::cout << "control loop frequency: " << 1.0 / ctrl_sw.toc()
@@ -278,6 +302,7 @@ void ScoutBase::ControlLoop(int32_t period_ms)
       if (light_ctrl_requested_)
           SendLightCmd(light_cmd_count++);
       ctrl_sw.sleep_until_ms(period_ms);
+
     }
 }
 
